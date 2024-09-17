@@ -1,6 +1,10 @@
-import os
+from pydantic_settings import BaseSettings
 
 
-class Config:
-    DEBUG = os.getenv("SUPERBENCHMARK_DEBUG", "false").lower() == "true"
-    JSON_DB_PATH = os.getenv("JSON_DB_PATH", "app/test_database.json")
+class Config(BaseSettings):
+    SUPERBENCHMARK_DEBUG: bool = True
+    JSON_DB_PATH: str = "test_database.json"
+    DATABASE_URL: str = ""
+
+    class Config:
+        env_file = ".env"
