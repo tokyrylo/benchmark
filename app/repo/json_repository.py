@@ -2,7 +2,7 @@ from typing import List
 from datetime import datetime
 
 from app.config import Config
-from app.shema.benchmark import Benchmark
+from app.schema.benchmark import Benchmark
 from app.utils.file_utils import read_json_file
 from app.repo.benchmark_repo import BenchmarkRepository
 

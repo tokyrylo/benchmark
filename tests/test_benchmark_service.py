@@ -3,7 +3,7 @@ import pytest
 
 from unittest.mock import AsyncMock
 
-from app.shema.benchmark import Benchmark
+from app.schema.benchmark import Benchmark
 from app.services.benchmark_service import BenchmarkService
 
 
