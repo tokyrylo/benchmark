@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Config(BaseSettings):
-    SUPERBENCHMARK_DEBUG: bool = True
+    SUPERBENCHMARK_DEBUG: bool = False
     JSON_DB_PATH: str = "test_database.json"
     DATABASE_URL: str = ""
 

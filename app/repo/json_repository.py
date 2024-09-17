@@ -9,8 +9,9 @@ from app.repo.benchmark_repo import BenchmarkRepository
 
 class JsonBenchmarkRepository(BenchmarkRepository):
     def __init__(self):
-        if not Config().SUPERBENCHMARK_DEBUG:
-            raise Exception("JSON repository can only be used in DEBUG mode")
+        config = Config()
+        if not config.SUPERBENCHMARK_DEBUG:
+            raise Exception("The feature is not ready for live yet.")
 
     async def get_all_results(self) -> List[Benchmark]:
         data = await read_json_file(Config().JSON_DB_PATH)
