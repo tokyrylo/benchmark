@@ -1,8 +1,15 @@
- - use for runnig
+ - before start:
+
+   ```bash
+
+   mv .env.example .env
+
+   ```
+ - use for runnig:
 
     `make up`
 
- - for test
+ - for test:
 
     `make test`
 
