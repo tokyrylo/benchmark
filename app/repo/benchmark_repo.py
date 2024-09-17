@@ -7,5 +7,5 @@ class BenchmarkRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_results_by_time_window(self, start_time: str, end_time: str):
+    async def get_average_statistics_between(self, start_time: str, end_time: str):
         pass

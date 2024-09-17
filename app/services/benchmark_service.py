@@ -6,7 +6,20 @@ class BenchmarkService:
     def __init__(self, repository: BenchmarkRepository):
         self.repository = repository
 
-    async def calculate_average_statistic(self, results):
+    async def calculate_average_statistic(self, results) -> Dict:
+        """
+        Calculate average statistics from a given list of results.
+
+        Args:
+            results (List[Benchmark]): A list of benchmark results.
+
+        Returns:
+            Dict: A dictionary with average statistics. The dictionary contains the following keys:
+                - `avarage_token_count`: The average number of tokens in the results.
+                - `avarage_time_to_first_token`: The average time to generate the first token in the results.
+                - `avarage_time_per_token_output`: The average time per token output in the results.
+                - `avarage_total_generation_time`: The average total generation time in the results.
+        """
         total_results = len(results)
         if total_results == 0:
             return {}
@@ -21,7 +34,7 @@ class BenchmarkService:
             "avarage_time_per_token_output": sum(
                 result.time_per_output_token for result in results
             )
-            / total_results,  # Виправлено тут
+            / total_results,
             "avarage_total_generation_time": sum(
                 result.total_generation_time for result in results
             )
@@ -37,5 +50,7 @@ class BenchmarkService:
     async def get_average_statistics_between(
         self, start_time: str, end_time: str
     ) -> Dict:
-        results = await self.repository.get_results_by_time_window(start_time, end_time)
+        results = await self.repository.get_average_statistics_between(
+            start_time, end_time
+        )
         return await self.calculate_average_statistic(results)
