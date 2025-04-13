@@ -3,7 +3,7 @@ from datetime import datetime
 
 from unittest.mock import patch, AsyncMock
 
-from app.repo.json_repository import JsonBenchmarkRepository
+from src.repo.json_repository import JsonBenchmarkRepository
 
 # Моковані дані
 mock_data = {

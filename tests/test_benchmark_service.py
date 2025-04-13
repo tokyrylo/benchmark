@@ -3,8 +3,8 @@ import pytest
 
 from unittest.mock import AsyncMock
 
-from app.schema.benchmark import Benchmark
-from app.services.benchmark_service import BenchmarkService
+from src.schema.benchmark import Benchmark
+from src.services.benchmark_service import BenchmarkService
 
 
 @pytest.fixture
