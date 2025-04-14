@@ -40,8 +40,10 @@ class BenchmarkService:
             dict: A dictionary containing keys for average token count, average time to first token, 
                 average time per output token and average total generation time.
         """
+        start, end = self._validate_date_range(start_time, end_time)
+
         items = await self.repository.all()
-        filtered = [i for i in items if start_time <= i.timestamp <= end_time]
+        filtered = [i for i in items if start <= datetime.fromisoformat(i.timestamp) <= end]
         return self._compute_averages(filtered)
 
     def _compute_averages(self, items: List[BenchmarkingResult]) -> dict:
@@ -64,3 +66,28 @@ class BenchmarkService:
             "avg_time_per_output_token": sum(i.time_per_output_token for i in items) / len(items),
             "avg_total_generation_time": sum(i.total_generation_time for i in items) / len(items),
         }
+
+    def _validate_date_range(self, start_time: str, end_time: str) -> tuple[datetime, datetime]:
+        """
+        Validate the datetime range and return parsed start and end times.
+
+        Args:
+            start_time (str): The start time in ISO 8601 format.
+            end_time (str): The end time in ISO 8601 format.
+
+        Returns:
+            tuple: A tuple containing parsed start_time and end_time as datetime objects.
+
+        Raises:
+            ValueError: If the datetime format is invalid or if end_time is earlier than start_time.
+        """
+        try:
+            start = datetime.fromisoformat(start_time)
+            end = datetime.fromisoformat(end_time)
+        except ValueError:
+            raise ValueError("Invalid datetime format. Expected ISO 8601.")
+
+        if end < start:
+            raise ValueError("end_time must be after start_time.")
+
+        return start, end
