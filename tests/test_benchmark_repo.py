@@ -1,65 +1,105 @@
-import pytest
+import unittest
 from datetime import datetime
+from typing import AsyncGenerator
 
-from unittest.mock import patch, AsyncMock
+from src.infrastructure.repository import JSONBenchmarkRepository
+from src.domain.entities import BenchmarkingResult
 
-from src.repo.json_repository import JsonBenchmarkRepository
 
-# Моковані дані
-mock_data = {
-    "benchmarking_results": [
-        {
-            "request_id": "1",
-            "prompt_text": "Test Prompt 1",
-            "generated_text": "Test Output 1",
-            "token_count": 5,
-            "time_to_first_token": 150,
-            "time_per_output_token": 30,
-            "total_generation_time": 300,
-            "timestamp": "2024-06-01T12:00:00",
-        },
-        {
-            "request_id": "2",
-            "prompt_text": "Test Prompt 2",
-            "generated_text": "Test Output 2",
-            "token_count": 10,
-            "time_to_first_token": 100,
-            "time_per_output_token": 20,
-            "total_generation_time": 200,
-            "timestamp": "2024-06-02T12:00:00",
-        },
+def fake_read_benchmarking_results(_: str) -> AsyncGenerator[BenchmarkingResult, None]:
+    """
+    Фейковый генератор вместо read_benchmarking_results — возвращает 2 объекта.
+    """
+    results = [
+        BenchmarkingResult(
+            request_id="1",
+            timestamp=datetime.fromisoformat("2025-04-13T10:00:00"),
+            token_count=100,
+            time_to_first_token=0.2,
+            time_per_output_token=0.04,
+            total_generation_time=5.0,
+            prompt_text="Hello",
+            generated_text="Hi"
+        ),
+        BenchmarkingResult(
+            request_id="2",
+            timestamp=datetime.fromisoformat("2025-04-13T11:00:00"),
+            token_count=200,
+            time_to_first_token=0.3,
+            time_per_output_token=0.05,
+            total_generation_time=8.0,
+            prompt_text="How are you?",
+            generated_text="I'm good"
+        )
     ]
-}
+
+    async def _gen():
+        for r in results:
+            yield r
+
+    return _gen()
 
 
-@pytest.fixture
-def benchmark_repo():
-    with patch("app.config.Config") as mock_config:
-        mock_config().SUPERBENCHMARK_DEBUG = True
-        repo = JsonBenchmarkRepository()
-        yield repo
+class TestJSONBenchmarkRepository(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        import src.infrastructure.repository.json_benchmark_repository as repo_module
+        repo_module.read_benchmarking_results = fake_read_benchmarking_results
+        self.repo = JSONBenchmarkRepository(file_path="fake_path.json")
+
+    async def test_all_returns_all_results(self):
+        results = await self.repo.all()
+        self.assertEqual(len(results), 2)
+        self.assertEqual(results[0].request_id, "1")
+        self.assertEqual(results[1].token_count, 200)
+
+    async def test_get_by_request_id_success(self):
+        result = await self.repo.get(reference="1")
+        self.assertIsNotNone(result)
+        self.assertEqual(result.request_id, "1")
+
+    async def test_get_by_request_id_not_found(self):
+        result = await self.repo.get(reference="999")
+        self.assertIsNone(result)
+
+    async def test_add_raises_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            await self.repo.add(BenchmarkingResult(
+                request_id="3",
+                timestamp=datetime.now(),
+                token_count=123,
+                time_to_first_token=0.1,
+                time_per_output_token=0.03,
+                total_generation_time=6.0,
+                prompt_text="Test prompt",
+                generated_text="Test output"
+            ))
+
+    async def test_update_raises_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            await self.repo.update(BenchmarkingResult(
+                request_id="3",
+                timestamp=datetime.now(),
+                token_count=123,
+                time_to_first_token=0.1,
+                time_per_output_token=0.03,
+                total_generation_time=6.0,
+                prompt_text="Test prompt",
+                generated_text="Test output"
+            ))
+
+    async def test_delete_raises_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            await self.repo.delete(BenchmarkingResult(
+                request_id="3",
+                timestamp=datetime.now(),
+                token_count=123,
+                time_to_first_token=0.1,
+                time_per_output_token=0.03,
+                total_generation_time=6.0,
+                prompt_text="Test prompt",
+                generated_text="Test output"
+            ))
 
 
-@pytest.mark.asyncio
-@patch("app.utils.file_utils.read_json_file", new_callable=AsyncMock)
-async def test_get_all_results(mock_read_json_file, benchmark_repo):
-    mock_read_json_file.return_value = mock_data
-    results = await benchmark_repo.get_all_results()
-
-    assert len(results) > 0
-    assert all("request_id" in result.dict() for result in results)
-
-
-@pytest.mark.asyncio
-@patch("app.utils.file_utils.read_json_file", new_callable=AsyncMock)
-async def test_get_average_statistics_between(mock_read_json_file, benchmark_repo):
-    mock_read_json_file.return_value = mock_data
-
-    start_time = "2024-06-01T00:00:00"
-    end_time = "2024-06-02T23:59:59"
-    results = await benchmark_repo.get_average_statistics_between(start_time, end_time)
-
-    assert len(results) > 0
-    assert all(
-        start_time <= result.timestamp.isoformat() <= end_time for result in results
-    )
+if __name__ == "__main__":
+    unittest.main()

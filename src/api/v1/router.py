@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.services import BenchmarkService
 from src.api.schema import BenchmarkingResponse
 
 from src.api.dependency import get_benchmark_service
-from src.api.validators import validate_date_range
 
 router = APIRouter()
 
@@ -53,5 +54,7 @@ async def get_average_results_between(
      -  `dict`: A dictionary containing keys for **average token count**, **average time to first token**, 
             **average time per output token** and **average total generation time**.
     """
-    start_dt, end_dt = validate_date_range(start_time, end_time)
-    return await service.get_average_statistics_between(start_dt, end_dt)
+    try:
+        return await service.get_average_statistics_between(start_time, end_time)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
